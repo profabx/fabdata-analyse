@@ -32,14 +32,14 @@ python3 start_server.py
 - `https://archive.fabacademy.org/archives/2017/master/students.html`
 
 ### 2018-2025格式（HTML页面）
-- `https://archive.fabacademy.org/2018/people.html`
-- `https://archive.fabacademy.org/2019/people.html`
-- `https://archive.fabacademy.org/2020/people.html`
-- `https://archive.fabacademy.org/2021/people.html`
-- `https://archive.fabacademy.org/2022/people.html`
-- `https://archive.fabacademy.org/2023/people.html`
-- `https://archive.fabacademy.org/2024/people.html`
-- `https://archive.fabacademy.org/2025/people.html`
+- `https://fabacademy.org/2018/people.html`
+- `https://fabacademy.org/2019/people.html`
+- `https://fabacademy.org/2020/people.html`
+- `https://fabacademy.org/2021/people.html`
+- `https://fabacademy.org/2022/people.html`
+- `https://fabacademy.org/2023/people.html`
+- `https://fabacademy.org/2024/people.html`
+- `https://fabacademy.org/2025/people.html`
 
 ## 🔧 核心特性
 
