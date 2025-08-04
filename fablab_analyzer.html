@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FabLab数据分析器 V2</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background: white;
+        }
+        button {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .tables-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: #343a40;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .countryStats {
+            margin-bottom: 30px;
+        }
+        .format-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .mapping-suggestions {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .suggestions-content {
+            padding: 20px;
+        }
+        .suggestion-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .suggestion-item.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        .suggestion-item code {
+            background: #e9ecef;
+            padding: 5px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+        .unknown-stats {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .stat-item {
+            color: #495057;
+            font-size: 14px;
+        }
+        .stat-item strong {
+            color: #007bff;
+        }
+        .unknown-details {
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .unknown-details .stat-item {
+            color: #856404;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .tables-section {
+                grid-template-columns: 1fr;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 FabLab数据分析器 V2</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <select id="yearFormat">
+                    <option value="2016-2017">2016-2017 格式</option>
+                    <option value="2018-2025">2018-2025 格式</option>
+                </select>
+                <input type="text" id="urlInput" placeholder="请输入FabLab网址" value="https://archive.fabacademy.org/archives/2017/master/students.html">
+                <button onclick="analyzeData()" id="analyzeBtn">分析数据</button>
+            </div>
+            <div class="format-info">
+                <strong>📋 数据格式说明：</strong>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li><strong>2016-2017格式：</strong> 使用JSON数据，包含student_id、first、last等字段</li>
+                    <li><strong>2018-2025格式：</strong> 使用HTML页面，需要解析HTML结构</li>
+                </ul>
+            </div>
+            <!-- CORS警告框已移除，自动启用代理服务 -->
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <p>正在获取数据，请稍候...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalLabs">0</div>
+                <div class="stat-label">总实验室数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">总学生数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCountries">0</div>
+                <div class="stat-label">参与国家数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="chinaLabs">0</div>
+                <div class="stat-label">中国实验室数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="chinaStudents">0</div>
+                <div class="stat-label">中国学生数量</div>
+            </div>
+        </div>
+
+        <div id="countryStats" class="countryStats" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">🌍 各国学生统计</div>
+                <table id="countryStatsTable">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>国家/地区</th>
+                            <th>学生数量</th>
+                            <th>实验室数量</th>
+                            <th>占比</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tables" class="tables-section" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">🇨🇳 中国实验室</div>
+                <table id="chinaLabsTable">
+                    <thead>
+                        <tr>
+                            <th>实验室名称</th>
+                            <th>国家/地区</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">👨‍🎓 中国学生</div>
+                <table id="chinaStudentsTable">
+                    <thead>
+                        <tr>
+                            <th>学生姓名</th>
+                            <th>实验室</th>
+                            <th>国家/地区</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 参与国家统计表格已关闭 -->
+    </div>
+
+    <script>
+        let useProxyMode = false;
+        
+        // 2018-2025年实验室对应的国家信息
+        const labCountries2018 = {
+            // 2018年实验室
+            'barcelona': 'Spain',
+            'fablabaachen': 'Germany',
+            'fablabaalto': 'Finland',
+            'fablabakgec': 'India',
+            'fablabamsterdam': 'Netherlands',
+            'fablabat3flo': 'France',
+            'fablabbahrain': 'Bahrain',
+            'fablabbeijing': 'China',
+            'fablabberytech': 'Lebanon',
+            'fablabbottrop': 'Germany',
+            'fablabbrighton': 'UK',
+            'fablabcept': 'India',
+            'fablabcharlottelatin': 'USA',
+            'fablabcrunchlab': 'Italy',
+            'fablabdassault': 'USA',
+            'falabdeusto': 'Spain',
+            'fablabdigiscope': 'France',
+            'fablabechofab': 'Canada',
+            'fablabecostudio': 'Canada',
+            'fablabegypt': 'Egypt',
+            'fablaberfindergarden': 'Germany',
+            'fablabesan': 'Peru',
+            'fablabfct': 'Portugal',
+            'fablabfacens': 'Brazil',
+            'fablabgearbox': 'Kenya',
+            'fablabincitefocus': 'USA',
+            'fablabirbid': 'Jordan',
+            'fablabisafjorour': 'Iceland',
+            'fablabkamakura': 'Japan',
+            'fablabkamplintfort': 'Germany',
+            'fablabkhairpur': 'Pakistan',
+            'fablabkochi': 'India',
+            'fablabkromlaboro': 'Italy',
+            'fablablccc': 'USA',
+            'fablableon': 'UK',
+            'fablabmadridceu': 'Spain',
+            'fablabmexico': 'Mexico',
+            'fablabodessa': 'USA',
+            'fablabopendot': 'Italy',
+            'fablaboshanghai': 'China',
+            'fablaboulu': 'Finland',
+            'fablabpuebla': 'Mexico',
+            'fablabreykjavik': 'Iceland',
+            'fablabrwanda': 'Rwanda',
+            'fablabsantiago': 'Chile',
+            'fablabseoul': 'South Korea',
+            'fablabseoulinnovation': 'South Korea',
+            'fablabsiena': 'Italy',
+            'fablabsingapore': 'Singapore',
+            'fablabsocom': 'USA',
+            'fablabsorbonne': 'France',
+            'fablabspinderihallerne': 'Denmark',
+            'fablabszoil': 'China',
+            // 添加更多中国实验室
+            'unncfablab': 'China',
+            'litcheelab': 'China',
+            'fablabunnc': 'China',
+            'fablabningbo': 'China',
+            'fablabchina': 'China',
+            'fablabbeijing': 'China',
+            'fablabshanghai': 'China',
+            'fablabguangzhou': 'China',
+            'fablabguangdong': 'China',
+            'fablabguangzhou': 'China',
+            'fablabguangdong': 'China',
+            'fablabtechworks': 'Jordan',
+            'fablabtecsup': 'Peru',
+            'fablabtembisa': 'South Africa',
+            'fablabtrivandrum': 'India',
+            'fablabuae': 'UAE',
+            'fablabulb': 'Belgium',
+            'fablabutec': 'Peru',
+            'fablabvigyanashram': 'India',
+            'fablabvigyanasharm': 'India',  // 可能的拼写错误
+            'fablabwgtn': 'New Zealand',
+            'fablabyachay': 'Ecuador',
+            'fablabyucatan': 'Mexico',
+            'fablabzoi': 'Ecuador',
+            'farmlabalgarve': 'Portugal',
+            'verket': 'Norway',
+            'falabvestmannaeyjar': 'Iceland',
+            
+            // 2019年实验室
+            'akgec': 'India',
+            'aachen': 'Germany',
+            'aalto': 'Finland',
+            'algarve': 'Portugal',
+            'bahrain': 'Bahrain',
+            'bangalore': 'India',
+            'barcelona': 'Spain',
+            'berytech': 'Lebanon',
+            'bottrop': 'Germany',
+            'brighton': 'UK',
+            'cept': 'India',
+            'cit': 'Peru',
+            'chandigarh': 'India',
+            'charlottelatin': 'USA',
+            'crunchlab': 'Italy',
+            'dassault': 'USA',
+            'dhahran': 'Saudi Arabia',
+            'digiscope': 'France',
+            'dilijan': 'Armenia',
+            'esan': 'Peru',
+            'fct': 'Portugal',
+            'egypt': 'Egypt',
+            'ied': 'Spain',
+            'incitefocus': 'USA',
+            'insper': 'Brazil',
+            'irbid': 'Jordan',
+            'kamakura': 'Japan',
+            'kamplintfort': 'Germany',
+            'kannai': 'Japan',
+            'khairpur': 'Pakistan',
+            'kochi': 'India',
+            'lccc': 'USA',
+            'lakazlab': 'Mauritius',
+            'lamachinerie': 'France',
+            'leon': 'Spain',
+            'napoli': 'Italy',
+            'oshanghai': 'China',
+            'oulu': 'Finland',
+            'polytech': 'Russia',
+            'puebla': 'Mexico',
+            'qbic': 'Qatar',
+            'rwanda': 'Rwanda',
+            'szoil': 'China',
+            'santachiara': 'Italy',
+            'seoul': 'South Korea',
+            'singapore': 'Singapore',
+            'sorbonne': 'France',
+            'tecsup': 'Peru',
+            'taipei': 'Taiwan',
+            'trivandrum': 'India',
+            'uae': 'UAE',
+            'ulb': 'Belgium',
+            'utec': 'Peru',
+            'vancouver': 'Canada',
+            'vigyanashram': 'India',
+            'waag': 'Netherlands',
+            'winam': 'Kenya',
+            'zoi': 'Ecuador',
+            'echofab': 'Canada',
+            
+            // 2020年及以后新增的实验室
+            'amman': 'Jordan',
+            'antioquia': 'Colombia',
+            'beirut': 'Lebanon',
+            'berlin': 'Germany',
+            'bogota': 'Colombia',
+            'boston': 'USA',
+            'bristol': 'UK',
+            'brussels': 'Belgium',
+            'cairo': 'Egypt',
+            'calgary': 'Canada',
+            'cambridge': 'UK',
+            'capetown': 'South Africa',
+            'cardiff': 'UK',
+            'chennai': 'India',
+            'chicago': 'USA',
+            'copenhagen': 'Denmark',
+            'dallas': 'USA',
+            'delhi': 'India',
+            'dubai': 'UAE',
+            'dublin': 'Ireland',
+            'edinburgh': 'UK',
+            'frankfurt': 'Germany',
+            'geneva': 'Switzerland',
+            'glasgow': 'UK',
+            'gothenburg': 'Sweden',
+            'hamburg': 'Germany',
+            'helsinki': 'Finland',
+            'hongkong': 'Hong Kong',
+            'istanbul': 'Turkey',
+            'jakarta': 'Indonesia',
+            'johannesburg': 'South Africa',
+            'karachi': 'Pakistan',
+            'kolkata': 'India',
+            'kuwait': 'Kuwait',
+            'lagos': 'Nigeria',
+            'lahore': 'Pakistan',
+            'lausanne': 'Switzerland',
+            'lille': 'France',
+            'lima': 'Peru',
+            'lisbon': 'Portugal',
+            'london': 'UK',
+            'losangeles': 'USA',
+            'madrid': 'Spain',
+            'manchester': 'UK',
+            'manila': 'Philippines',
+            'mexicocity': 'Mexico',
+            'milan': 'Italy',
+            'mumbai': 'India',
+            'munich': 'Germany',
+            'nairobi': 'Kenya',
+            'newyork': 'USA',
+            'nuremberg': 'Germany',
+            'osaka': 'Japan',
+            'oslo': 'Norway',
+            'ottawa': 'Canada',
+            'paris': 'France',
+            'philadelphia': 'USA',
+            'porto': 'Portugal',
+            'prague': 'Czech Republic',
+            'riodejaneiro': 'Brazil',
+            'rome': 'Italy',
+            'rotterdam': 'Netherlands',
+            'saopaulo': 'Brazil',
+            'seattle': 'USA',
+            'shanghai': 'China',
+            'stockholm': 'Sweden',
+            'sydney': 'Australia',
+            'telaviv': 'Israel',
+            'tokyo': 'Japan',
+            'toronto': 'Canada',
+            'toulouse': 'France',
+            'tunis': 'Tunisia',
+            'vienna': 'Austria',
+            'warsaw': 'Poland',
+            'wellington': 'New Zealand',
+            'zurich': 'Switzerland',
+            
+            // 2020年特定实验室映射
+            'agrilab': 'France',
+            'algarvefarm': 'Portugal',
+            'bhubaneswar': 'India',
+            'chaihuoxfactory': 'China',
+            'chaihuox': 'China',
+            'chaihuo': 'China',
+            'chaihuofactory': 'China',
+            'chaihuolab': 'China',
+            'chaihuofablab': 'China',
+            'ciudaddemexico': 'Mexico',
+            'dassaultsystemeslab': 'USA',
+            'deusto': 'Spain',
+            'dilijan': 'Armenia',
+            'esan': 'Peru',
+            'esne': 'Spain',
+            'ecostudio': 'Panama',
+            'fct': 'Portugal',
+            'hrwbottrop': 'Germany',
+            'incitefocus': 'USA',
+            'irbid': 'Jordan',
+            'kamakura': 'Japan',
+            'kamplintfort': 'Germany',
+            'kannai': 'Japan',
+            'keralakochi': 'India',
+            'khairpur': 'Pakistan',
+            'lamachinerie': 'France',
+            'leon': 'Spain',
+            'loraincountycommunitycollege': 'USA',
+            'newcairo': 'Egypt',
+            'oshanghai': 'China',
+            'opendot': 'Italy',
+            'oulu': 'Finland',
+            'qbic': 'Qatar',
+            'reykjavik': 'Iceland',
+            'rwanda': 'Rwanda',
+            'szoil': 'China',
+            'santachiara': 'Italy',
+            'seoulinnovationlab': 'South Korea',
+            'singaporepolytechnic': 'Singapore',
+            'stjude': 'Costa Rica',
+            'tecsup': 'Peru',
+            'taipei': 'Taiwan',
+            'talents': 'Saudi Arabia',
+            'techworksamman': 'Jordan',
+            'tinkerersfablabcastelldefels': 'Spain',
+            'twardapoweredbyorange': 'Poland',
+            'uae': 'UAE',
+            'ucal': 'Peru',
+            'ulb': 'Belgium',
+            'vestmannaeyjar': 'Iceland',
+            'vigyanashram': 'India',
+            'waagamsterdam': 'Netherlands',
+            'winam': 'Kenya',
+            'yucatán': 'Mexico',
+            'zoi': 'Ecuador',
+            'echofab': 'Canada',
+            
+            // 2021年新增实验室映射
+            'aalto': 'Finland',
+            'amsterdam': 'Netherlands',
+            'bangalore': 'India',
+            'barcelona': 'Spain',
+            'benfica': 'Portugal',
+            'berytech': 'Lebanon',
+            'bhubaneswarstpi': 'India',
+            'chandigarh': 'India',
+            'charlottelatin': 'USA',
+            'ciudaddemexico': 'Mexico',
+            'dassaultsystemeslab': 'USA',
+            'digiscope': 'France',
+            'dilijan': 'Armenia',
+            'ecae': 'UAE',
+            'esan': 'Peru',
+            'egypt': 'Egypt',
+            'fctfablab': 'Portugal',
+            'hrwbottrop': 'Germany',
+            'incitefocus': 'USA',
+            'ingegnomakerspace': 'Belgium',
+            'insper': 'Brazil',
+            'ioannina': 'Greece',
+            'irbid': 'Jordan',
+            'kaust': 'Saudi Arabia',
+            'kamakura': 'Japan',
+            'kamplintfort': 'Germany',
+            'kannai': 'Japan',
+            'khairpur': 'Pakistan',
+            'kochikerala': 'India',
+            'lamachinerie': 'France',
+            'leon': 'Spain',
+            'libya': 'Libya',
+            'lima': 'Peru',
+            'loraincountycommunitycollege': 'USA',
+            'napoli': 'Italy',
+            'oshanghai': 'China',
+            'opendot': 'Italy',
+            'oulu': 'Finland',
+            'plusxbrightonfablab': 'UK',
+            'puebla': 'Mexico',
+            'rwanda': 'Rwanda',
+            'sedicupct': 'Spain',
+            'santachiara': 'Italy',
+            'singaporepolytechnic': 'Singapore',
+            'tecsup': 'Peru',
+            'taipei': 'Taiwan',
+            'talents': 'Saudi Arabia',
+            'techworksamman': 'Jordan',
+            'uae': 'UAE',
+            'ulb': 'Belgium',
+            'ulimalaboratoriodefabricacionfablab': 'Peru',
+            'vancouver': 'Canada',
+            'vigyanashram': 'India',
+            'wheatonfablab': 'USA',
+            'yucatan': 'Mexico',
+            'zoi': 'Ecuador',
+            
+            // 补充2020年缺失的实验室映射
+            'akgec': 'India',
+            'bahrain': 'Bahrain',
+            'bangalore': 'India',
+            'barcelona': 'Spain',
+            'chandigarh': 'India',
+            'charlottelatin': 'USA',
+            'crunchlab': 'Italy',
+            'digiscope': 'France',
+            'egypt': 'Egypt',
+            'vigyanashram': 'India',
+            'yucatn': 'Mexico',
+            'chofab': 'Canada'
+        };
+        
+        async function analyzeData() {
+            const yearFormat = document.getElementById('yearFormat').value;
+            const urlInput = document.getElementById('urlInput').value.trim();
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            const stats = document.getElementById('stats');
+            const tables = document.getElementById('tables');
+            const countryStats = document.getElementById('countryStats');
+
+            if (!urlInput) {
+                showError('请输入有效的网址');
+                return;
+            }
+
+            // 显示加载状态
+            analyzeBtn.disabled = true;
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            success.style.display = 'none';
+            stats.style.display = 'none';
+            tables.style.display = 'none';
+            countryStats.style.display = 'none';
+
+            try {
+                let data;
+                
+                // 首先尝试不使用代理
+                useProxyMode = false;
+                console.log('🔄 尝试直接获取数据...');
+                
+                try {
+                    if (yearFormat === '2016-2017') {
+                        data = await analyze2016Format(urlInput);
+                    } else {
+                        data = await analyze2018Format(urlInput);
+                    }
+                } catch (directError) {
+                    console.log('直接获取失败，启用代理服务器重试...');
+                    
+                    // 如果直接获取失败，启用代理重试
+                    useProxyMode = true;
+                    loading.querySelector('p').textContent = '正在通过代理服务器获取数据，请稍候...';
+                    
+                    if (yearFormat === '2016-2017') {
+                        data = await analyze2016Format(urlInput);
+                    } else {
+                        data = await analyze2018Format(urlInput);
+                    }
+                }
+                
+                // 分析数据
+                const analysis = analyzeFabLabData(data, yearFormat);
+                
+                // 显示统计信息
+                displayStats(analysis);
+                
+                // 显示表格
+                displayTables(analysis);
+                
+                // 显示Unknown学生和实验室信息
+                displayUnknownInfo(analysis);
+                
+                // 打印动态国家映射表
+                countryManager.printDynamicMapping();
+                
+                showSuccess('数据分析完成！');
+                
+            } catch (err) {
+                console.error('获取数据时出错:', err);
+                let errorMessage = `获取数据失败: ${err.message}`;
+                
+                // 如果是CORS错误，提供更详细的解决方案
+                if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
+                    errorMessage += '<br><br><strong>解决方案：</strong><br>';
+                    errorMessage += '1. 检查网络连接<br>';
+                    errorMessage += '2. 确认网址格式正确<br>';
+                    errorMessage += '3. 尝试使用本地服务器运行此页面';
+                }
+                
+                showError(errorMessage);
+            } finally {
+                analyzeBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        async function analyze2016Format(url) {
+            // 构建students.json的URL
+            const baseUrl = url.replace('/students.html', '');
+            let studentsJsonUrl = `${baseUrl}/students.json`;
+            
+            // 如果使用代理模式，通过代理服务器获取数据
+            if (useProxyMode) {
+                studentsJsonUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(studentsJsonUrl)}`;
+            }
+            
+            console.log('正在获取2016-2017格式数据:', studentsJsonUrl);
+            
+            const response = await fetch(studentsJsonUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            let data;
+            if (useProxyMode) {
+                // 代理服务器返回的数据格式不同
+                const proxyResponse = await response.json();
+                if (proxyResponse.contents) {
+                    data = JSON.parse(proxyResponse.contents);
+                } else {
+                    throw new Error('代理服务器返回数据格式错误');
+                }
+            } else {
+                data = await response.json();
+            }
+            
+            console.log('获取到的2016-2017数据:', data);
+            return data;
+        }
+
+        async function analyze2018Format(url) {
+            console.log('正在获取2018-2025格式数据:', url);
+            
+            let fetchUrl = url;
+            if (useProxyMode) {
+                fetchUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            }
+            
+            const response = await fetch(fetchUrl);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            let htmlContent;
+            if (useProxyMode) {
+                const proxyResponse = await response.json();
+                if (proxyResponse.contents) {
+                    htmlContent = proxyResponse.contents;
+                } else {
+                    throw new Error('代理服务器返回数据格式错误');
+                }
+            } else {
+                htmlContent = await response.text();
+            }
+            
+            // 解析HTML数据
+            const data = parse2018HTML(htmlContent);
+            console.log('解析的2018-2025数据:', data);
+            return data;
+        }
+
+        function parse2018HTML(htmlContent) {
+            const data = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            // 查找所有实验室 - 支持多种HTML结构
+            let labHeaders = doc.querySelectorAll('h3 a');
+            
+            // 如果没有找到h3 a，尝试其他选择器
+            if (labHeaders.length === 0) {
+                labHeaders = doc.querySelectorAll('h3');
+            }
+            
+            // 如果还是没有找到，尝试更宽泛的选择器
+            if (labHeaders.length === 0) {
+                labHeaders = doc.querySelectorAll('h3, h2, .lab-header');
+            }
+            
+            // 如果还是没有找到，尝试所有可能的标题元素
+            if (labHeaders.length === 0) {
+                labHeaders = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            }
+            
+            console.log('找到的实验室标题数量:', labHeaders.length);
+            console.log('HTML结构:', doc.body.innerHTML.substring(0, 1000));
+            
+            console.log('找到的实验室标题数量:', labHeaders.length);
+            
+            labHeaders.forEach((labHeader, index) => {
+                let labName, labUrl;
+                
+                if (labHeader.tagName === 'A') {
+                    labName = labHeader.textContent.trim();
+                    labUrl = labHeader.getAttribute('href');
+                } else {
+                    // 对于h3元素，查找其中的链接
+                    const link = labHeader.querySelector('a');
+                    if (link) {
+                        labName = link.textContent.trim();
+                        labUrl = link.getAttribute('href');
+                    } else {
+                        labName = labHeader.textContent.trim();
+                        labUrl = '#';
+                    }
+                }
+                
+                // 从URL或实验室名称提取实验室标识
+                let labId = '';
+                if (labUrl && labUrl !== '#') {
+                    labId = labUrl.split('/').pop();
+                } else {
+                    // 如果没有URL，从实验室名称提取标识
+                    labId = labName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z]/g, '');
+                }
+                
+                console.log(`实验室 ${index + 1}: ${labName} (ID: ${labId})`);
+                console.log(`  - 原始名称: "${labName}"`);
+                console.log(`  - 生成的ID: "${labId}"`);
+                console.log(`  - URL: "${labUrl}"`);
+                console.log(`  - 实验室元素类型: ${labHeader.tagName}`);
+                console.log(`  - 实验室元素内容: ${labHeader.innerHTML}`);
+                
+                // 查找该实验室下的所有学生
+                let studentList = labHeader.parentElement.nextElementSibling;
+                if (!studentList || studentList.tagName !== 'UL') {
+                    // 尝试查找下一个兄弟元素
+                    studentList = labHeader.nextElementSibling;
+                }
+                
+                if (studentList && studentList.tagName === 'UL') {
+                    const students = studentList.querySelectorAll('li a');
+                    console.log(`  - 找到 ${students.length} 个学生`);
+                    
+                    students.forEach(studentLink => {
+                        const studentName = studentLink.textContent.trim();
+                        const studentCode = studentLink.getAttribute('data-code');
+                        const studentUrl = studentLink.getAttribute('href');
+                        
+                        // 从实验室映射表获取国家信息
+                        let country = 'Unknown';
+                        console.log(`  - 实验室ID: ${labId}, 实验室名称: ${labName}`);
+                        
+                        // 首先尝试精确匹配labId
+                        if (labCountries2018[labId.toLowerCase()]) {
+                            country = labCountries2018[labId.toLowerCase()];
+                            console.log(`    - 精确匹配labId: ${labId} -> ${country}`);
+                        } else {
+                                                    // 尝试多种可能的名称格式
+                        const possibleIds = [
+                            labId.toLowerCase(),
+                            labName.toLowerCase().replace(/\s+/g, ''),
+                            labName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z]/g, ''),
+                            labName.toLowerCase().replace(/\s+/g, '').replace(/fablab/i, ''),
+                            labName.toLowerCase().replace(/\s+/g, '').replace(/fablab\s*/i, ''),
+                            // 特殊处理Vigyan Ashram
+                            labName.toLowerCase().includes('vigyan') ? 'vigyanashram' : null,
+                            labName.toLowerCase().includes('vigyan') ? 'fablabvigyanashram' : null,
+                            // 特殊处理Chaihuo
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuoxfactory' : null,
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuox' : null,
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuo' : null,
+                            // 处理可能的其他Chaihuo变体
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuofactory' : null,
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuolab' : null,
+                            labName.toLowerCase().includes('chaihuo') ? 'chaihuofablab' : null,
+                            // 特殊处理中国实验室
+                            labName.toLowerCase().includes('unnc') ? 'unncfablab' : null,
+                            labName.toLowerCase().includes('litchee') ? 'litcheelab' : null,
+                            labName.toLowerCase().includes('ningbo') ? 'fablabningbo' : null,
+                            labName.toLowerCase().includes('shenzhen') ? 'litcheelab' : null,
+                            labName.toLowerCase().includes('china') ? 'fablabchina' : null
+                        ].filter(id => id !== null);
+                            
+                            let found = false;
+                            console.log(`    - 尝试的ID列表: [${possibleIds.join(', ')}]`);
+                            for (const possibleId of possibleIds) {
+                                console.log(`    - 尝试ID: "${possibleId}" -> ${labCountries2018[possibleId] || '未找到'}`);
+                                if (labCountries2018[possibleId]) {
+                                    country = labCountries2018[possibleId];
+                                    console.log(`    - 多格式匹配成功: ${possibleId} -> ${country}`);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            
+                            // 如果多格式匹配失败，尝试包含匹配
+                            if (!found) {
+                                for (const [key, value] of Object.entries(labCountries2018)) {
+                                    if (labId.toLowerCase().includes(key.toLowerCase()) || 
+                                        labName.toLowerCase().includes(key.toLowerCase())) {
+                                        country = value;
+                                        console.log(`    - 包含匹配: ${key} -> ${country}`);
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // 如果仍然没有找到，尝试从实验室名称中直接提取国家信息
+                            if (!found && country === 'Unknown') {
+                                const extractedCountry = extractCountryFromLabName(labName);
+                                if (extractedCountry !== 'Unknown') {
+                                    country = extractedCountry;
+                                    console.log(`    - 从实验室名称提取国家: ${labName} -> ${country}`);
+                                }
+                            }
+                        }
+                        
+                        console.log(`    - 学生: ${studentName} -> 国家: ${country}`);
+                        
+                        data.push({
+                            name: studentName,
+                            code: studentCode,
+                            lab: labName,
+                            lab_url: labUrl,
+                            url: studentUrl,
+                            country: country
+                        });
+                    });
+                } else {
+                    console.log(`  - 未找到学生列表`);
+                }
+            });
+            
+            console.log('解析到的实验室数据:', data.slice(0, 5));
+            return data;
+        }
+
+        function analyzeFabLabData(data, format) {
+            const labs = new Set();
+            const students = new Set();
+            const chinaLabs = new Set();
+            const chinaStudents = [];
+            const chinaLabList = [];
+            const countryCounter = new CountryCounter();
+
+            // 中国相关的国家和地区
+            const chinaRegions = ['China', 'Taipei', 'Taiwan', 'Hong Kong', 'HongKong', 'Macao', 'Macau', 'Chinese'];
+
+            console.log('原始数据样本:', data.slice(0, 3));
+
+            data.forEach((student, index) => {
+                if (format === '2016-2017') {
+                    // 2016-2017格式处理
+                    // 统计实验室
+                    if (student.lab_name && student.lab_name.trim()) {
+                        labs.add(student.lab_name.trim());
+                        
+                        // 检查是否为中国实验室
+                        if (student.country && chinaRegions.some(region => 
+                            student.country.toLowerCase().includes(region.toLowerCase()))) {
+                            chinaLabs.add(student.lab_name.trim());
+                            
+                            // 添加到中国实验室列表
+                            const labInfo = {
+                                name: student.lab_name.trim(),
+                                country: student.country,
+                                url: student.lab_url || '#'
+                            };
+                            
+                            if (!chinaLabList.find(lab => lab.name === student.lab_name.trim())) {
+                                chinaLabList.push(labInfo);
+                            }
+                        }
+                    }
+
+                    // 改进学生统计逻辑 - 使用更可靠的唯一标识，处理重复student_id的情况
+                    let studentId = null;
+                    if (student.student_id && student.student_id.trim()) {
+                        // 如果有first和last名字，结合student_id创建唯一标识
+                        if (student.first && student.last) {
+                            studentId = `${student.student_id.trim()}_${student.first.trim()}_${student.last.trim()}`;
+                        } else if (student.first) {
+                            studentId = `${student.student_id.trim()}_${student.first.trim()}`;
+                        } else if (student.last) {
+                            studentId = `${student.student_id.trim()}_${student.last.trim()}`;
+                        } else {
+                            studentId = `${student.student_id.trim()}_${index}`;
+                        }
+                    } else if (student.id && student.id.trim()) {
+                        studentId = student.id.trim();
+                    } else if (student.first && student.last) {
+                        studentId = `${student.first.trim()}_${student.last.trim()}`;
+                    } else if (student.first) {
+                        studentId = student.first.trim();
+                    } else if (student.last) {
+                        studentId = student.last.trim();
+                    } else {
+                        studentId = `student_${index}`;
+                    }
+                    
+                    if (studentId) {
+                        students.add(studentId);
+                    }
+
+                    // 统计各国学生数量 - 使用CountryCounter
+                    if (student.country && student.country.trim()) {
+                        const country = student.country.trim();
+                        let studentName = '未知';
+                        if (student.first && student.last) {
+                            studentName = `${student.first} ${student.last}`;
+                        } else if (student.name) {
+                            studentName = student.name;
+                        } else if (student.first) {
+                            studentName = student.first;
+                        } else if (student.last) {
+                            studentName = student.last;
+                        }
+                        
+                        countryCounter.addStudent(studentName, student.lab_name || '未知', country);
+                    }
+
+                    // 检查是否为中国学生
+                    if (student.country && chinaRegions.some(region => 
+                        student.country.toLowerCase().includes(region.toLowerCase()))) {
+                        
+                        // 尝试多种可能的姓名字段
+                        let studentName = '未知';
+                        if (student.first && student.last) {
+                            studentName = `${student.first} ${student.last}`;
+                        } else if (student.name) {
+                            studentName = student.name;
+                        } else if (student.first) {
+                            studentName = student.first;
+                        } else if (student.last) {
+                            studentName = student.last;
+                        } else if (student.student_name) {
+                            studentName = student.student_name;
+                        } else if (student.full_name) {
+                            studentName = student.full_name;
+                        }
+                        
+                        // 构建正确的学生链接 - 使用email地址
+                        let studentUrl = '#';
+                        if (student.email) {
+                            studentUrl = `mailto:${student.email}`;
+                        } else if (student.url) {
+                            studentUrl = student.url;
+                        }
+                        
+                        chinaStudents.push({
+                            name: studentName,
+                            lab: student.lab_name || '未知',
+                            country: student.country,
+                            url: studentUrl
+                        });
+                    }
+                } else {
+                    // 2018-2025格式处理
+                    // 统计实验室
+                    if (student.lab && student.lab.trim()) {
+                        labs.add(student.lab.trim());
+                        
+                        // 检查是否为中国实验室
+                        if (student.country && chinaRegions.some(region => 
+                            student.country.toLowerCase().includes(region.toLowerCase()))) {
+                            chinaLabs.add(student.lab.trim());
+                            
+                            // 添加到中国实验室列表
+                            const labInfo = {
+                                name: student.lab.trim(),
+                                country: student.country,
+                                url: student.lab_url || '#'
+                            };
+                            
+                            if (!chinaLabList.find(lab => lab.name === student.lab.trim())) {
+                                chinaLabList.push(labInfo);
+                            }
+                        }
+                    }
+
+                    // 学生统计
+                    let studentId = null;
+                    if (student.code) {
+                        studentId = student.code.trim();
+                    } else if (student.name) {
+                        studentId = student.name.trim();
+                    } else {
+                        studentId = `student_${index}`;
+                    }
+                    
+                    if (studentId) {
+                        students.add(studentId);
+                    }
+
+                    // 统计各国学生数量 - 使用CountryCounter
+                    if (student.country && student.country.trim()) {
+                        const country = student.country.trim();
+                        countryCounter.addStudent(student.name || '未知', student.lab || '未知', country);
+                    }
+
+                    // 检查是否为中国学生
+                    if (student.country && chinaRegions.some(region => 
+                        student.country.toLowerCase().includes(region.toLowerCase()))) {
+                        
+                        chinaStudents.push({
+                            name: student.name || '未知',
+                            lab: student.lab || '未知',
+                            country: student.country,
+                            url: student.url || '#'
+                        });
+                    }
+                }
+            });
+
+            // 获取CountryCounter的统计结果
+            const countryStatsData = countryCounter.getCountryStats();
+            const countryStatsArray = Object.entries(countryStatsData)
+                .map(([country, data]) => ({ 
+                    country, 
+                    count: data.count,
+                    labs: data.labs,
+                    students: data.students
+                }))
+                .sort((a, b) => b.count - a.count);
+
+            console.log('统计结果:', {
+                totalLabs: labs.size,
+                totalStudents: students.size,
+                totalCountries: countryCounter.getTotalCountries(),
+                chinaLabs: chinaLabs.size,
+                chinaStudents: chinaStudents.length,
+                countryStats: countryStatsArray,
+                unknownLabs: countryCounter.getUnknownLabs(),
+                unknownStudents: countryCounter.getUnknownStudents()
+            });
+
+            return {
+                totalLabs: labs.size,
+                totalStudents: students.size,
+                totalCountries: countryCounter.getTotalCountries(),
+                chinaLabs: chinaLabs.size,
+                chinaStudents: chinaStudents.length,
+                chinaLabList: chinaLabList,
+                chinaStudentsList: chinaStudents,
+                countryStats: countryStatsArray,
+                unknownLabs: countryCounter.getUnknownLabs(),
+                unknownStudents: countryCounter.getUnknownStudents(),
+                unknownCount: countryCounter.getUnknownCount()
+            };
+        }
+
+        function displayStats(analysis) {
+            document.getElementById('totalLabs').textContent = analysis.totalLabs;
+            document.getElementById('totalStudents').textContent = analysis.totalStudents;
+            document.getElementById('totalCountries').textContent = analysis.totalCountries;
+            document.getElementById('chinaLabs').textContent = analysis.chinaLabs;
+            document.getElementById('chinaStudents').textContent = analysis.chinaStudents;
+            document.getElementById('stats').style.display = 'grid';
+            
+            // 显示各国统计表格
+            displayCountryStats(analysis.countryStats);
+        }
+
+        function displayCountryStats(countryStats) {
+            const countryStatsTableBody = document.querySelector('#countryStatsTable tbody');
+            countryStatsTableBody.innerHTML = '';
+            
+            const totalStudents = countryStats.reduce((sum, item) => sum + item.count, 0);
+            
+            countryStats.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const percentage = ((item.count / totalStudents) * 100).toFixed(1);
+                const labCount = item.labs ? item.labs.length : 0;
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.country}</td>
+                    <td>${item.count}</td>
+                    <td>${labCount}</td>
+                    <td>${percentage}%</td>
+                `;
+                countryStatsTableBody.appendChild(row);
+            });
+            
+            document.getElementById('countryStats').style.display = 'block';
+        }
+
+        function displayTables(analysis) {
+            // 显示中国实验室表格
+            const labsTableBody = document.querySelector('#chinaLabsTable tbody');
+            labsTableBody.innerHTML = '';
+            
+            analysis.chinaLabList.forEach(lab => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><a href="${lab.url}" target="_blank">${lab.name}</a></td>
+                    <td>${lab.country}</td>
+                `;
+                labsTableBody.appendChild(row);
+            });
+
+            // 显示中国学生表格
+            const studentsTableBody = document.querySelector('#chinaStudentsTable tbody');
+            studentsTableBody.innerHTML = '';
+            
+            analysis.chinaStudentsList.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><a href="${student.url}" target="_blank">${student.name}</a></td>
+                    <td>${student.lab}</td>
+                    <td>${student.country}</td>
+                `;
+                studentsTableBody.appendChild(row);
+            });
+
+            // 显示Unknown详细信息表格
+            displayUnknownInfo(analysis);
+
+            document.getElementById('tables').style.display = 'grid';
+        }
+
+        function displayUnknownInfo(analysis) {
+            // 显示国家统计信息到控制台
+            console.log('🌍 ===== 参与国家数量统计 =====');
+            console.log(`参与国家数量: ${analysis.totalCountries}个`);
+            console.log('国家列表:', analysis.countryStats.map(item => item.country).join(', '));
+            console.log('');
+            
+            console.log('📊 各国详细信息:');
+            analysis.countryStats.forEach(item => {
+                console.log(`${item.country}: ${item.count}个学生, ${item.labs.length}个实验室`);
+                console.log(`  实验室: ${item.labs.join(', ')}`);
+                console.log('');
+            });
+            
+            // 如果有Unknown信息，显示详细信息到控制台
+            if (analysis.unknownLabs && analysis.unknownLabs.length > 0) {
+                console.log('❓ Unknown实验室信息:', analysis.unknownLabs);
+                console.log('👥 Unknown学生信息:', analysis.unknownStudents);
+                console.log(`Unknown实验室数量: ${analysis.unknownLabs.length}`);
+                console.log(`Unknown学生数量: ${analysis.unknownCount || analysis.unknownStudents.length}`);
+            }
+            
+            console.log('🌍 ===== 参与国家统计完成 =====');
+        }
+
+        function get2021UnknownLabs() {
+            // 2021年实际的46个Unknown实验室数据，使用新的国家提取逻辑
+            const labs = [
+                "Aalto (Espoo, Finland)",
+                "AgriLab (Beauvais, France)",
+                "Amsterdam - Waag (Amsterdam, Netherlands)",
+                "Bangalore (Bangalore, India)",
+                "Barcelona (Barcelona, Spain)",
+                "Benfica (Lisboa, Portugal)",
+                "Berytech (Beirut, Lebanon)",
+                "Bhubaneswar STPI (Bhubaneswar, India)",
+                "Chandigarh (Chandigarh, India)",
+                "Charlotte Latin (Charlotte, United States)",
+                "Ciudad de México (Ciudad de Mexico, Mexico)",
+                "Dassault Systemes Lab (Walthan, United States)",
+                "Digiscope (Gif-sur-Yvette, France)",
+                "Dilijan (Dilijan, Armenia)",
+                "ECAE (Abu Dhabi, United Arab Emirates)",
+                "ESAN (Lima, Peru)",
+                "Egypt (Cairo, egypt)",
+                "FCT FabLab (Caparica, Portugal)",
+                "HRW Bottrop (Bottrop, Germany)",
+                "Incite Focus (Detroit, United States)",
+                "Ingegno Maker Space (Drongen, Belgium)",
+                "Insper (Sao Paulo, Brazil)",
+                "Ioannina (Ioannina, Greece)",
+                "Irbid (Irbid, Jordan)",
+                "KAUST (Thuwal, Saudi Arabia)",
+                "Kamakura (Kamakura, Japan)",
+                "Kamp-Lintfort (Kamp-Lintfort, Germany)",
+                "Kannai (Yokohama, Japan)",
+                "Khairpur (Khairpur, Pakistan)",
+                "Kochi - Kerala (Kochi, India)",
+                "La Machinerie (Amiens, France)",
+                "Leon (San Andres del Rabanedo, Spain)",
+                "Libya (Benghazi, Libya)",
+                "Lima (Lima, Peru)",
+                "Lorain County Community College (Elyria, United States)",
+                "Napoli (Napoles, Italy)",
+                "O Shanghai (Shanghai, China)",
+                "Opendot (Milan, Italy)",
+                "Oulu (Oulu, Finland)",
+                "PlusX Brighton Fablab (Brighton, United Kingdom)",
+                "Puebla (San Andres de Cholula, Mexico)",
+                "Rwanda (Kigali, Rwanda)",
+                "SEDI-Cup-ct (Cartagena, spain)",
+                "Santa Chiara (Siena, Italy)",
+                "Singapore Polytechnic (Singapore, Singapore)",
+                "TECSUP (Lima, Peru)",
+                "Taipei (Taipei, Taiwan)",
+                "Talents (Alkhobar, Saudi Arabia)",
+                "Techworks Amman (Amman, Jordan)",
+                "UAE (Dubai, United Arab Emirates)",
+                "ULB (Brussels, Belgium)",
+                "Ulima - Laboratorio de manufactura Fablab (Lima, Peru)",
+                "Vancouver (Vancouver, Canada)",
+                "Vigyan Ashram (Pune, India)",
+                "Wheaton Fab Lab (Norton, United States)",
+                "Yucatan (Yucatan, Mexico)",
+                "ZOI (Quito, Ecuador)"
+            ];
+            
+            return labs.map(labName => ({
+                name: labName,
+                country: extractCountryFromLabName(labName)
+            }));
+        }
+
+        function extractCountryFromLabName(labName) {
+            // 从实验室名称中提取国家信息，格式："实验室（城市，国家）"
+            const match = labName.match(/\([^)]+\)/);
+            if (match) {
+                const content = match[0].slice(1, -1); // 去掉括号
+                const parts = content.split(',').map(part => part.trim());
+                if (parts.length > 0) {
+                    let country = parts[parts.length - 1]; // 返回最后一个词
+                    
+                    // 使用动态国家管理器进行标准化
+                    return countryManager.normalizeCountry(country);
+                }
+            }
+            return "Unknown";
+        }
+
+        // 动态国家管理系统
+        class DynamicCountryManager {
+            constructor() {
+                // 基础国家映射表
+                this.countryMapping = {
+                    'Taipei': 'China',
+                    'Taiwan': 'China', 
+                    'Macao': 'China',
+                    'Hongkong': 'China',
+                    'Hong Kong': 'China',
+                    'Macau': 'China',
+                    'Chinese': 'China',
+                    'PRC': 'China',
+                    'People\'s Republic of China': 'China',
+                    'Republic of China': 'China',
+                    'ROC': 'China',
+                    'Taiwan, China': 'China',
+                    'Taipei, China': 'China',
+                    'Hong Kong, China': 'China',
+                    'Macau, China': 'China'
+                };
+                
+                // 动态添加的国家映射
+                this.dynamicMapping = {};
+                
+                // 国家统计
+                this.countryStats = {};
+                this.unknownCountries = new Set();
+            }
+            
+            // 标准化国家名称
+            normalizeCountry(country) {
+                if (!country) return 'Unknown';
+                
+                // 首先检查基础映射表
+                if (this.countryMapping[country]) {
+                    return this.countryMapping[country];
+                }
+                
+                // 检查动态映射表
+                if (this.dynamicMapping[country]) {
+                    return this.dynamicMapping[country];
+                }
+                
+                // 如果是Unknown，记录到未知国家集合
+                if (country === 'Unknown' || country === 'unknown') {
+                    this.unknownCountries.add(country);
+                    return 'Unknown';
+                }
+                
+                // 新国家，添加到动态映射表
+                this.dynamicMapping[country] = country;
+                this.countryStats[country] = {
+                    count: 0,
+                    labs: new Set(),
+                    students: []
+                };
+                
+                console.log(`🆕 发现新国家: ${country}`);
+                return country;
+            }
+            
+            // 添加实验室到国家统计
+            addLabToCountry(country, labName) {
+                const normalizedCountry = this.normalizeCountry(country);
+                
+                if (normalizedCountry !== 'Unknown') {
+                    if (!this.countryStats[normalizedCountry]) {
+                        this.countryStats[normalizedCountry] = {
+                            count: 0,
+                            labs: new Set(),
+                            students: []
+                        };
+                    }
+                    this.countryStats[normalizedCountry].labs.add(labName);
+                }
+                
+                return normalizedCountry;
+            }
+            
+            // 添加学生到国家统计
+            addStudentToCountry(country, labName, studentName) {
+                const normalizedCountry = this.normalizeCountry(country);
+                
+                if (normalizedCountry !== 'Unknown') {
+                    if (!this.countryStats[normalizedCountry]) {
+                        this.countryStats[normalizedCountry] = {
+                            count: 0,
+                            labs: new Set(),
+                            students: []
+                        };
+                    }
+                    this.countryStats[normalizedCountry].count++;
+                    this.countryStats[normalizedCountry].students.push(studentName);
+                    this.countryStats[normalizedCountry].labs.add(labName);
+                }
+                
+                return normalizedCountry;
+            }
+            
+            // 获取国家统计
+            getCountryStats() {
+                const stats = {};
+                for (const [country, data] of Object.entries(this.countryStats)) {
+                    stats[country] = {
+                        count: data.count,
+                        labs: Array.from(data.labs),
+                        students: data.students
+                    };
+                }
+                return stats;
+            }
+            
+            // 获取所有国家列表
+            getAllCountries() {
+                return Object.keys(this.countryStats);
+            }
+            
+            // 获取未知国家列表
+            getUnknownCountries() {
+                return Array.from(this.unknownCountries);
+            }
+            
+            // 打印动态映射表（用于调试）
+            printDynamicMapping() {
+                console.log('🔄 动态国家映射表:');
+                Object.entries(this.dynamicMapping).forEach(([original, normalized]) => {
+                    console.log(`  ${original} -> ${normalized}`);
+                });
+            }
+        }
+        
+        // 创建全局国家管理器实例
+        const countryManager = new DynamicCountryManager();
+
+        // 国家统计类
+        class CountryCounter {
+            constructor() {
+                this.countries = new Set();
+                this.countryStats = {};
+                this.unknownLabs = new Set();
+                this.unknownStudents = [];
+            }
+
+            addCountry(country, labName = null, studentName = null) {
+                // 使用动态国家管理器进行标准化
+                const normalizedCountry = countryManager.normalizeCountry(country);
+                
+                // 处理Unknown国家
+                if (normalizedCountry === 'Unknown' || normalizedCountry === 'unknown') {
+                    if (labName) {
+                        this.unknownLabs.add(labName);
+                    }
+                    if (studentName) {
+                        this.unknownStudents.push({
+                            name: studentName,
+                            lab: labName
+                        });
+                    }
+                    
+                    // 将Unknown也添加到总统计中
+                    this.countries.add(normalizedCountry);
+                    if (!this.countryStats[normalizedCountry]) {
+                        this.countryStats[normalizedCountry] = {
+                            count: 0,
+                            labs: new Set(),
+                            students: []
+                        };
+                    }
+                    this.countryStats[normalizedCountry].count++;
+                    if (labName) {
+                        this.countryStats[normalizedCountry].labs.add(labName);
+                    }
+                    if (studentName) {
+                        this.countryStats[normalizedCountry].students.push(studentName);
+                    }
+                    
+                    return 'Unknown';
+                }
+                
+                // 使用动态国家管理器添加学生和实验室
+                if (labName) {
+                    countryManager.addLabToCountry(normalizedCountry, labName);
+                }
+                if (studentName) {
+                    countryManager.addStudentToCountry(normalizedCountry, labName, studentName);
+                }
+                
+                this.countries.add(normalizedCountry);
+                
+                if (!this.countryStats[normalizedCountry]) {
+                    this.countryStats[normalizedCountry] = {
+                        count: 0,
+                        labs: new Set(),
+                        students: []
+                    };
+                }
+                
+                this.countryStats[normalizedCountry].count++;
+                if (labName) {
+                    this.countryStats[normalizedCountry].labs.add(labName);
+                }
+                if (studentName) {
+                    this.countryStats[normalizedCountry].students.push(studentName);
+                }
+                
+                return normalizedCountry;
+            }
+
+            addLab(labName, country) {
+                const normalizedCountry = this.addCountry(country, labName);
+                return normalizedCountry;
+            }
+
+            addStudent(studentName, labName, country) {
+                const normalizedCountry = this.addCountry(country, labName, studentName);
+                return normalizedCountry;
+            }
+
+            getTotalCountries() {
+                return this.countries.size;
+            }
+
+            getCountriesList() {
+                return Array.from(this.countries).sort();
+            }
+
+            getCountryStats() {
+                const stats = {};
+                for (const [country, data] of Object.entries(this.countryStats)) {
+                    stats[country] = {
+                        count: data.count,
+                        labs: Array.from(data.labs),
+                        students: data.students
+                    };
+                }
+                return stats;
+            }
+
+            getUnknownLabs() {
+                return Array.from(this.unknownLabs);
+            }
+
+            getUnknownStudents() {
+                return this.unknownStudents;
+            }
+
+            getUnknownCount() {
+                return this.unknownStudents.length;
+            }
+        }
+
+        function getCountryStats(unknownLabsData) {
+            // 统计国家信息
+            const countryStats = {};
+            const countries = new Set();
+            
+            unknownLabsData.forEach(lab => {
+                const country = lab.country;
+                countries.add(country);
+                
+                if (!countryStats[country]) {
+                    countryStats[country] = {
+                        count: 0,
+                        students: 0,
+                        labs: []
+                    };
+                }
+                
+                countryStats[country].count++;
+                countryStats[country].students += lab.studentCount;
+                countryStats[country].labs.push(lab.name);
+            });
+            
+            return {
+                totalCountries: countries.size,
+                countries: Array.from(countries).sort(),
+                countryStats: countryStats
+            };
+        }
+
+        function printUnknownInfo(analysis) {
+            console.log('🔍 ===== Unknown学生和实验室详细信息 =====');
+            
+            // 收集Unknown学生信息
+            const unknownStudents = [];
+            const unknownLabs = new Set();
+            
+            if (analysis.data) {
+                analysis.data.forEach(student => {
+                    if (student.country === 'Unknown') {
+                        unknownStudents.push({
+                            name: student.name || student.first + ' ' + student.last,
+                            lab: student.lab || student.lab_name,
+                            labId: student.lab ? generateLabId(student.lab) : (student.lab_name ? generateLabId(student.lab_name) : 'unknown'),
+                            url: student.url
+                        });
+                        unknownLabs.add(student.lab || student.lab_name);
+                    }
+                });
+            }
+            
+            // 打印Unknown实验室信息
+            console.log('📋 Unknown实验室列表:');
+            console.log('实验室数量:', unknownLabs.size);
+            Array.from(unknownLabs).forEach((lab, index) => {
+                const labId = generateLabId(lab);
+                console.log(`${index + 1}. 实验室名称: "${lab}"`);
+                console.log(`   生成的ID: "${labId}"`);
+                console.log(`   学生数量: ${unknownStudents.filter(s => s.lab === lab).length}`);
+                console.log('');
+            });
+            
+            // 打印Unknown学生详细信息
+            console.log('👥 Unknown学生详细信息:');
+            console.log('学生总数:', unknownStudents.length);
+            unknownStudents.forEach((student, index) => {
+                console.log(`${index + 1}. 学生姓名: "${student.name}"`);
+                console.log(`   所属实验室: "${student.lab}"`);
+                console.log(`   实验室ID: "${student.labId}"`);
+                console.log(`   学生链接: ${student.url}`);
+                console.log('');
+            });
+            
+            // 生成映射建议
+            console.log('💡 映射建议:');
+            console.log('请在映射表中添加以下实验室映射:');
+            Array.from(unknownLabs).forEach(lab => {
+                const labId = generateLabId(lab);
+                console.log(`'${labId}': 'Country', // ${lab}`);
+            });
+            
+            console.log('🔍 ===== Unknown信息打印完成 =====');
+        }
+
+        function generateLabId(labName) {
+            return labName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z]/g, '');
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.innerHTML = message;
+            error.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const success = document.getElementById('success');
+            success.textContent = message;
+            success.style.display = 'block';
+        }
+
+        // useProxy函数已移除，代理功能已集成到分析数据流程中
+
+        // 页面加载时自动分析默认URL
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                analyzeData();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 
