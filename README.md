@@ -1,4 +1,5 @@
 # 🔬 FabLab数据分析器
+直接访问：https://profabx.github.io/fabdata-analyse/
 
 一个智能的FabLab实验室和学生数据分析工具，支持2016-2025年的数据格式，具有动态国家管理系统。
 
